@@ -116,7 +116,7 @@ export default function Map({ setDataBounds, houses, highlightedId }: IProps) {
                 gravity="auto"
               />
               <Link href={`/houses/${selected.id}`}>
-                <a>View House</a>
+                View House
               </Link>
             </div>
           </Popup>

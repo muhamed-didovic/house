@@ -29,13 +29,13 @@ export default function HouseNav({ house }: IProps) {
   return (
     <>
       <Link href="/">
-        <a>map</a>
+        map
       </Link>
       {canManage && (
         <>
           {" | "}
           <Link href={`/houses/${house.id}/edit`}>
-            <a>edit</a>
+            edit
           </Link>
           {" | "}
           <button
