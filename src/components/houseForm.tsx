@@ -50,11 +50,7 @@ interface IUploadImageResponse {
   secure_url: string;
 }
 
-async function uploadImage(
-  image: File,
-  signature: string,
-  timestamp: number
-): Promise<IUploadImageResponse> {
+async function uploadImage(image: File, signature: string, timestamp: number): Promise<IUploadImageResponse> {
   const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`;
 
   const formData = new FormData();
@@ -96,7 +92,7 @@ export default function HouseForm({ house }: IProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>();
-  const { register, handleSubmit, setValue, errors, watch } = useForm<
+  const { register, handleSubmit, setValue, formState: {errors}, watch } = useForm<
     IFormData
   >({
     defaultValues: house
@@ -122,10 +118,12 @@ export default function HouseForm({ house }: IProps) {
   >(UPDATE_HOUSE_MUTATION);
 
   useEffect(() => {
-    register({ name: "address" }, { required: "Please enter your address" });
-    register({ name: "latitude" }, { required: true, min: -90, max: 90 });
-    register({ name: "longitude" }, { required: true, min: -180, max: 180 });
-  }, [register]);
+    register("address", { required: "Please enter your address" });
+    register("latitude", { required: true, min: -90, max: 90 });
+    register("longitude", { required: true, min: -180, max: 180 });
+    // register({ name: "bedrooms" as const }, { required: true, min: 0, max: 10 });
+    // register({ name: "image" as const }, { required: !house });
+  }, [register, house]);
 
   const handleCreate = async (data: IFormData) => {
     const { data: signatureData } = await createSignature();
@@ -190,6 +188,7 @@ export default function HouseForm({ house }: IProps) {
   };
 
   const onSubmit = (data: IFormData) => {
+    console.log('submitting', data);
     setSubmitting(false);
     if (!!house) {
       handleUpdate(house, data);
@@ -198,8 +197,41 @@ export default function HouseForm({ house }: IProps) {
     }
   };
 
+  const validateImage = (value) => {
+    console.log('value:', value);
+    const fileList = value?.[0];
+    // const house = ''; // Assuming you have a 'house' variable
+
+    if (!fileList) {
+      return 'Please upload an image';
+    }
+
+    if (house || fileList) {
+      return true;
+    }
+
+    return 'Please upload one file';
+  };
+
+  /*const validateImage = (fileList) => {
+    console.log('value:', fileList);
+    if (fileList.length === 1) {
+      const file = fileList[0];
+      if (file.type.includes('image')) {
+        return true;
+      } else {
+        return 'Please upload an image file';
+      }
+    } else {
+      return 'Please upload one file';
+    }
+  };*/
+
   return (
-    <form className="mx-auto max-w-xl py-4" onSubmit={handleSubmit(onSubmit)}>
+    <form className="mx-auto max-w-xl py-4"
+          action="#"
+          onSubmit={handleSubmit(onSubmit)}
+    >
       <h1 className="text-xl">
         {house ? `Editing ${house.address}` : "Add a New House"}
       </h1>
@@ -211,12 +243,12 @@ export default function HouseForm({ house }: IProps) {
         <SearchBox
           onSelectAddress={(address, latitude, longitude) => {
             setValue("address", address);
-            setValue("latitude", latitude);
-            setValue("longitude", longitude);
+            setValue("latitude", latitude ?? 0);
+            setValue("longitude", longitude ?? 0);
           }}
           defaultValue={house ? house.address : ""}
         />
-        {errors.address && <p>{errors.address.message}</p>}
+        {errors?.address && <p>{errors.address.message}</p>}
       </div>
 
       {address && (
@@ -228,36 +260,57 @@ export default function HouseForm({ house }: IProps) {
             >
               Click to add image (16:9)
             </label>
-            <input
-              id="image"
-              name="image"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              ref={register({
-                validate: (fileList: FileList) => {
-                  if (house || fileList.length === 1) return true;
-                  return "Please upload one file";
-                },
-              })}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                if (event?.target?.files?.[0]) {
-                  const file = event.target.files[0];
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setPreviewImage(reader.result as string);
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-            />
+            {/*<input
+                id="image"
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                {...register('image', { validate: validateImage })}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  const fileList = event.target.files;
+                  if (fileList?.length) {
+                    const file = fileList[0];
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPreviewImage(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+            />*/}
+             <input
+                 id="image"
+                 // name="image"
+                 type="file"
+                 accept="image/*"
+                 style={{ opacity: 0 }}
+                 {...register('image',{
+                   validate: (fileList: FileList) => {
+                     console.log('fileList:', fileList);
+                     if (house || fileList.length === 1) return true;
+                     return "Please upload one file";
+                   },
+                 })}
+                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                   if (event?.target?.files?.[0]) {
+                     const file = event.target.files[0];
+                     const reader = new FileReader();
+                     reader.onloadend = () => {
+                       setPreviewImage(reader.result as string);
+                     };
+                     reader.readAsDataURL(file);
+                   }
+                 }}
+
+             />
+            House:{house}
             {previewImage ? (
-              <img
+              <Image
                 src={previewImage}
                 className="mt-4 object-cover"
                 style={{ width: "576px", height: `${(9 / 16) * 576}px` }}
               />
             ) : house ? (
+              <>
+                house ima
               <Image
                 className="mt-4"
                 cloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
@@ -271,6 +324,7 @@ export default function HouseForm({ house }: IProps) {
                 crop="fill"
                 gravity="auto"
               />
+              </>
             ) : null}
             {errors.image && <p>{errors.image.message}</p>}
           </div>
@@ -281,10 +335,9 @@ export default function HouseForm({ house }: IProps) {
             </label>
             <input
               id="bedrooms"
-              name="bedrooms"
               type="number"
               className="p-2"
-              ref={register({
+              {...register('bedrooms', {
                 required: "Please enter the number of bedrooms",
                 max: { value: 10, message: "Wooahh, too big of a house" },
                 min: { value: 1, message: "Must have at least 1 bedroom" },
@@ -302,7 +355,7 @@ export default function HouseForm({ house }: IProps) {
               Save
             </button>{" "}
             <Link href={house ? `/houses/${house.id}` : "/"}>
-              <a>Cancel</a>
+              Cancel
             </Link>
           </div>
         </>

@@ -6,7 +6,8 @@ import Map from "src/components/map";
 import HouseList from "src/components/houseList";
 import { useLastData } from "src/utils/useLastData";
 import { useLocalState } from "src/utils/useLocalState";
-import { HousesQuery, HousesQueryVariables } from "src/generated/HousesQuery";
+// import { HousesQuery, HousesQueryVariables } from "src/generated/HousesQuery";
+import {HousesQueryQuery, HousesQueryQueryVariables} from "src/generated/graphql";
 
 const HOUSES_QUERY = gql`
   query HousesQuery($bounds: BoundsInput!) {
@@ -44,7 +45,7 @@ export default function Home() {
     "[[0,0],[0,0]]"
   );
   const [debouncedDataBounds] = useDebounce(dataBounds, 200);
-  const { data, error } = useQuery<HousesQuery, HousesQueryVariables>(
+  const { data, error } = useQuery<HousesQueryQuery, HousesQueryQueryVariables>(
     HOUSES_QUERY,
     {
       variables: { bounds: parseBounds(debouncedDataBounds) },

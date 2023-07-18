@@ -7,7 +7,8 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "codegen": "apollo client:codegen --target typescript --localSchemaFile schema.gql --outputFlat --includes \"{pages,src}/**\" --excludes \"src/generated/**\" src/generated",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen-old": "apollo client:codegen --target typescript --localSchemaFile schema.gql --outputFlat --includes \"{pages,src}/**\" --excludes \"src/generated/**\" src/generated",
     "codegen:watch": "yarn codegen --watch",
     "db:init": "yarn prisma init",
     "db:generate": "yarn prisma generate",
@@ -17,10 +18,13 @@
   },
   "dependencies": {
     "@apollo/client": "^3.7.16",
+    "@apollo/federation": "^0.38.1",
+    "@apollo/react-hooks": "^4.0.0",
     "@apollo/server": "^4.7.5",
     "@prisma/client": "^4.16.2",
     "@reach/combobox": "^0.18.0",
-    "apollo-server-micro": "^2.19.0",
+    "apollo-boost": "^0.4.9",
+    "apollo-server-nextjs": "^4.0.0",
     "autoprefixer": "^10.0.2",
     "class-validator": "^0.14.0",
     "cloudinary": "^1.37.3",
@@ -49,6 +53,9 @@
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-decorators": "^7.12.1",
+    "@graphql-codegen/cli": "4.0.1",
+    "@graphql-codegen/client-preset": "4.0.1",
+    "@graphql-codegen/introspection": "4.0.0",
     "@prisma/cli": "~2.11.0",
     "@types/cookie": "^0.4.0",
     "@types/deepmerge": "^2.2.0",
@@ -67,8 +74,5 @@
     "prettier": "^2.8.8",
     "prisma": "^4.16.2",
     "typescript": "^5.1.6"
-  },
-  "resolutions": {
-    "graphql": "15.4"
   }
 }
